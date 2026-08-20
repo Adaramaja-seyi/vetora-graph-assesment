@@ -30,64 +30,52 @@ export async function GET(
     const { diseaseName } = await params;
 
     // Complex multi-hop graph query for disease similarity
+    // Using bidirectional pattern: Disease -> Symptom <- Disease
     const result = await session.run(
       `
-      // Start with the target disease
       MATCH (targetDisease:Disease {name: $diseaseName})
+      MATCH (targetDisease)-[:HAS_SYMPTOM]->(symptom:Symptom)
       
-      // Get all symptoms of the target disease
-      MATCH (targetDisease)-[:HAS_SYMPTOM]->(targetSymptom:Symptom)
+      WITH targetDisease, collect(DISTINCT symptom) AS targetSymptoms
       
-      // Find other diseases that share ANY of these symptoms
-      // This creates a 3-hop path: Disease -> Symptom <- Disease
-      MATCH (otherDisease:Disease)-[:HAS_SYMPTOM]->(sharedSymptom:Symptom)
-      WHERE sharedSymptom IN collect(targetSymptom)
-        AND otherDisease <> targetDisease
+      // Find other diseases through shared symptoms (3-hop pattern)
+      MATCH (targetDisease)-[:HAS_SYMPTOM]->(sharedSymptom:Symptom)<-[:HAS_SYMPTOM]-(otherDisease:Disease)
+      WHERE otherDisease <> targetDisease
       
-      // Collect all symptoms for both diseases to calculate similarity
+      // Get all symptoms for both diseases
+      MATCH (otherDisease)-[:HAS_SYMPTOM]->(otherSymptom:Symptom)
+      
       WITH 
         targetDisease,
         otherDisease,
-        collect(DISTINCT sharedSymptom.name) AS sharedSymptoms
-      
-      // Get all symptoms of the target disease for comparison
-      MATCH (targetDisease)-[:HAS_SYMPTOM]->(allTargetSymptoms:Symptom)
-      WITH 
-        targetDisease,
-        otherDisease,
-        sharedSymptoms,
-        collect(DISTINCT allTargetSymptoms.name) AS targetSymptoms
-      
-      // Get all symptoms of the similar disease
-      MATCH (otherDisease)-[:HAS_SYMPTOM]->(allOtherSymptoms:Symptom)
-      WITH
-        targetDisease,
-        otherDisease,
-        sharedSymptoms,
         targetSymptoms,
-        collect(DISTINCT allOtherSymptoms.name) AS otherSymptoms
+        collect(DISTINCT otherSymptom) AS otherSymptoms,
+        collect(DISTINCT sharedSymptom) AS sharedSymptoms
       
-      // Calculate Jaccard similarity: |intersection| / |union|
+      // Calculate Jaccard similarity
       WITH
         otherDisease,
-        sharedSymptoms,
-        targetSymptoms,
-        otherSymptoms,
+        [s IN sharedSymptoms | s.name] AS sharedSymptomNames,
+        [s IN targetSymptoms | s.name] AS targetSymptomNames,
+        [s IN otherSymptoms | s.name] AS otherSymptomNames,
         size(sharedSymptoms) AS intersectionSize,
         size(targetSymptoms) + size(otherSymptoms) - size(sharedSymptoms) AS unionSize
       
-      // Get species affected by the similar disease
+      // Get affected species
       OPTIONAL MATCH (species:Species)-[:HAS_DISEASE]->(otherDisease)
       
       RETURN
         otherDisease.name AS diseaseName,
         otherDisease.description AS description,
-        sharedSymptoms,
-        otherSymptoms AS allSymptoms,
+        sharedSymptomNames AS sharedSymptoms,
+        otherSymptomNames AS allSymptoms,
         collect(DISTINCT species.name) AS affectedSpecies,
         intersectionSize,
         unionSize,
-        toFloat(intersectionSize) / unionSize AS similarityScore
+        CASE 
+          WHEN unionSize > 0 THEN toFloat(intersectionSize) / toFloat(unionSize)
+          ELSE 0.0
+        END AS similarityScore
       
       ORDER BY similarityScore DESC, intersectionSize DESC
       LIMIT 5
