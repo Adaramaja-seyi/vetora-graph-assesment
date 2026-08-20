@@ -124,14 +124,18 @@ export default function KnowledgeGraph({ diseaseName }: KnowledgeGraphProps) {
         const graphNodes: GraphNode[] = data.nodes || [];
         const graphRelationships: GraphRelationship[] = data.relationships || [];
 
-        // Node positioning logic
-        const formattedNodes: Node[] = graphNodes.map((graphNode, index) => {
+        // Node positioning logic with type-specific indexing
+        let symptomIndex = 0;
+        let speciesIndex = 0;
+        
+        const formattedNodes: Node[] = graphNodes.map((graphNode) => {
           let x = 400;
           let y = 250;
 
           if (graphNode.type === "Species") {
             x = 80;
-            y = 220;
+            y = 150 + (speciesIndex * 120);
+            speciesIndex++;
           }
 
           if (graphNode.type === "Disease") {
@@ -141,7 +145,8 @@ export default function KnowledgeGraph({ diseaseName }: KnowledgeGraphProps) {
 
           if (graphNode.type === "Symptom") {
             x = 760;
-            y = index * 95 + 40;
+            y = 40 + (symptomIndex * 95);
+            symptomIndex++;
           }
 
           const nodeTypeKey = graphNode.type ? graphNode.type.toLowerCase() : "disease";
