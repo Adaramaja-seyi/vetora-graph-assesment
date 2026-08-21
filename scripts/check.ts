@@ -4,7 +4,7 @@ async function checkDatabase() {
   const session = driver.session();
 
   try {
-    console.log("🔍 Checking CognoDB...\n");
+    console.log("Checking CognoDB...\n");
 
     // 1. Check species
     const speciesResult = await session.run(`
@@ -13,7 +13,7 @@ async function checkDatabase() {
       ORDER BY s.name
     `);
 
-    console.log("🐾 Species:");
+    console.log("Species:");
     speciesResult.records.forEach((record) => {
       console.log(`- ${record.get("name")}`);
     });
@@ -25,7 +25,7 @@ async function checkDatabase() {
       ORDER BY d.name
     `);
 
-    console.log("\n🦠 Diseases:");
+    console.log(" Diseases:");
     diseaseResult.records.forEach((record) => {
       console.log(`- ${record.get("name")}`);
     });
@@ -49,14 +49,14 @@ async function checkDatabase() {
       ORDER BY s.name
     `);
 
-    console.log("\n🦠 Parvovirus symptoms:");
+    console.log("Parvovirus symptoms:");
     parvoSymptoms.records.forEach((record) => {
       console.log(`- ${record.get("symptom")}`);
     });
 
-    console.log("\n✅ Database check completed successfully!");
+    console.log(" Database check completed successfully!");
   } catch (error) {
-    console.error("❌ Database check failed:", error);
+    console.error(" Database check failed:", error);
   } finally {
     await session.close();
     await driver.close();

@@ -57,7 +57,7 @@ async function seed() {
   const session = driver.session();
 
   try {
-    console.log("🌱 Starting database seed...");
+    console.log("Starting database seed...");
 
     // Create species
     for (const name of species) {
@@ -69,7 +69,7 @@ async function seed() {
       );
     }
 
-    console.log("✅ Species created");
+    console.log("Species created");
 
     // Create symptoms
     for (const name of symptoms) {
@@ -81,7 +81,7 @@ async function seed() {
       );
     }
 
-    console.log("✅ Symptoms created");
+    console.log("Symptoms created");
 
     // Create diseases and relationships
     for (const disease of diseases) {
@@ -110,11 +110,11 @@ async function seed() {
       );
     }
 
-    console.log("✅ Diseases and relationships created");
+    console.log("Diseases and relationships created");
 
-    console.log("🎉 Database seeding completed successfully!");
+    console.log("Database seeding completed successfully!");
   } catch (error) {
-    console.error("❌ Seeding failed:", error);
+    console.error(" Seeding failed:", error);
     process.exit(1);
   } finally {
     await session.close();
