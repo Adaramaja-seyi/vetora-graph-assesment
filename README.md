@@ -74,7 +74,7 @@ These connections are central to Vetora Graph, making a graph database a natural
 
 ---
 
-## 🤔 Why a Graph Database?
+##  Why a Graph Database?
 
 The core problem in Vetora Graph is not simply storing diseases or symptoms. It is understanding the **relationships between them**.
 
@@ -307,7 +307,7 @@ This represents:
 
 ---
 
-## ✨ Features
+## Features
 
 ### User Features
 
@@ -484,7 +484,7 @@ A typical workflow is:
 
 ---
 
-# 🔍 Cypher Queries
+# Cypher Queries
 
 Vetora Graph uses parameterized Cypher queries through the official Neo4j JavaScript driver.
 
@@ -628,7 +628,7 @@ This demonstrates a relationship-oriented query that would require substantially
 
 ---
 
-# 🏗️ Architecture
+# Architecture
 
 The application follows a simple full-stack architecture:
 
@@ -662,27 +662,26 @@ The database credentials are only accessed server-side through environment varia
 
 ---
 
-# 📸 Screenshots
+# Screenshots
 
 ## Home / Diagnosis Interface
 
-![Vetora Graph Home](./docs/screenshot-home.png)
+![Vetora Graph Home](/image.png)
 
 The main interface allows users to select an animal species and symptoms.
 
 ---
 
 ## Condition Results
-
-![Condition Results](./docs/screenshot-results.png)
+![Condition Results](/image-1.png)
 
 Matching conditions are ranked according to symptom overlap.
 
----
+
 
 ## Disease Details
 
-![Disease Details](./docs/screenshot-disease-detail.png)
+![Disease Details](/image-3.png)
 
 The disease details page displays connected species, symptoms, treatments, and other available relationships.
 
@@ -690,13 +689,13 @@ The disease details page displays connected species, symptoms, treatments, and o
 
 ## Interactive Knowledge Graph
 
-![Knowledge Graph](./docs/screenshot-graph.png)
+![Knowledge Graph](/image-2.png)
 
 The interactive graph provides a visual representation of the relationships stored in CognoDB.
 
 ---
 
-# 📁 Project Structure
+# Project Structure
 
 ```text
 vetora-graph/
@@ -755,7 +754,7 @@ vetora-graph/
 
 ---
 
-# 🚀 Deployment
+# Deployment
 
 The application can be deployed using Vercel.
 
@@ -798,7 +797,7 @@ After deployment, verify that:
 
 ---
 
-# ⚠️ Limitations and Future Improvements
+# Limitations and Future Improvements
 
 Vetora Graph is intentionally a small demonstration application designed to show graph data modeling and traversal.
 
