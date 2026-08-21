@@ -143,81 +143,125 @@ export default function KnowledgeGraph({ diseaseName }: KnowledgeGraphProps) {
         if (!response.ok) {
           throw new Error(data.message || "Failed to load knowledge graph");
         }
-
         const graphNodes: GraphNode[] = data.nodes || [];
         const graphRelationships: GraphRelationship[] =
           data.relationships || [];
 
-        // Remove duplicate graph nodes
+        /*
+         * -------------------------------------------------------
+         * 1. Remove duplicate nodes
+         * -------------------------------------------------------
+         *
+         * Species/Disease:
+         *   unique by ID
+         *
+         * Symptom:
+         *   unique by label
+         *
+         * This handles cases where CognoDB returns multiple
+         * symptom node records with the same label.
+         */
         const uniqueGraphNodes = Array.from(
           new Map(
-            graphNodes.map((node) => [
-              `${node.type}-${String(node.id)}`,
-              node,
-            ])
+            graphNodes.map((node) => {
+              const type = node.type?.toLowerCase();
+
+              if (type === "symptom") {
+                return [
+                  `symptom-${node.label.trim().toLowerCase()}`,
+                  node,
+                ];
+              }
+
+              return [
+                `${type}-${String(node.id)}`,
+                node,
+              ];
+            })
           ).values()
         );
 
-        // Node positioning logic with type-specific indexing
-        // ---------------------------------------------------------
-        // Format graph nodes
-        // ---------------------------------------------------------
+        /*
+         * -------------------------------------------------------
+         * 2. Create a map from every original node ID to the
+         *    canonical node that we are keeping.
+         * -------------------------------------------------------
+         */
+        const nodeIdMap = new Map<string, GraphNode>();
+
+        graphNodes.forEach((node) => {
+          const type = node.type?.toLowerCase();
+
+          if (type === "symptom") {
+            const canonicalNode = uniqueGraphNodes.find(
+              (uniqueNode) =>
+                uniqueNode.type?.toLowerCase() === "symptom" &&
+                uniqueNode.label.trim().toLowerCase() ===
+                node.label.trim().toLowerCase()
+            );
+
+            if (canonicalNode) {
+              nodeIdMap.set(
+                `${type}-${String(node.id)}`,
+                canonicalNode
+              );
+            }
+          } else {
+            nodeIdMap.set(
+              `${type}-${String(node.id)}`,
+              node
+            );
+          }
+        });
+
+        /*
+         * -------------------------------------------------------
+         * 3. Position nodes
+         * -------------------------------------------------------
+         */
         let symptomIndex = 0;
         let speciesIndex = 0;
 
-        const formattedNodes: Node[] = [];
-        const nodeIdMap = new Map<string, string>();
+        const formattedNodes: Node[] = uniqueGraphNodes.map(
+          (graphNode) => {
+            let x = 400;
+            let y = 250;
 
-        uniqueGraphNodes.forEach((graphNode, index) => {
-          let x = 400;
-          let y = 250;
+            const type = graphNode.type?.toLowerCase();
 
-          if (graphNode.type === "Species") {
-            x = 80;
-            y = 80 + speciesIndex * 120;
-            speciesIndex++;
+            if (type === "species") {
+              x = 80;
+              y = 100 + speciesIndex * 120;
+              speciesIndex++;
+            }
+
+            if (type === "disease") {
+              x = 450;
+              y = 280;
+            }
+
+            if (type === "symptom") {
+              x = 850;
+              y = 60 + symptomIndex * 100;
+              symptomIndex++;
+            }
+
+            return {
+              id: `${type}-${graphNode.id}`,
+              type: type || "disease",
+              position: { x, y },
+              data: {
+                label: graphNode.label,
+              },
+            };
           }
+        );
 
-          if (graphNode.type === "Disease") {
-            x = 450;
-            y = 300;
-          }
-
-          if (graphNode.type === "Symptom") {
-            x = 820;
-            y = 60 + symptomIndex * 90;
-            symptomIndex++;
-          }
-
-          const nodeTypeKey = graphNode.type
-            ? graphNode.type.toLowerCase()
-            : "disease";
-
-          // Original database identity
-          const originalId = String(graphNode.id);
-
-          // Create a unique React Flow ID
-          const baseNodeId = `${nodeTypeKey}-${originalId}`;
-
-          // Guarantee uniqueness even if CognoDB returns duplicate nodes
-          const uniqueNodeId = `${baseNodeId}-${index}`;
-
-          // Store mapping from database node identity to React Flow ID
-          nodeIdMap.set(`${nodeTypeKey}-${originalId}`, uniqueNodeId);
-
-          formattedNodes.push({
-            id: uniqueNodeId,
-            type: nodeTypeKey,
-            position: { x, y },
-            data: {
-              label: graphNode.label,
-            },
-          });
-        });
-
-        // ---------------------------------------------------------
-        // Format graph relationships
-        // ---------------------------------------------------------
+        /*
+         * -------------------------------------------------------
+         * 4. Remove duplicate relationships
+         * -------------------------------------------------------
+         */
         const uniqueRelationships = Array.from(
           new Map(
             graphRelationships.map((relationship) => [
@@ -227,52 +271,84 @@ export default function KnowledgeGraph({ diseaseName }: KnowledgeGraphProps) {
           ).values()
         );
 
-        const formattedEdges: any = uniqueRelationships
-          .map((relationship) => {
-            const sourceNode = uniqueGraphNodes.find(
-              (node) => String(node.id) === String(relationship.source)
+        /*
+         * -------------------------------------------------------
+         * 5. Create edges using the canonical node IDs
+         * -------------------------------------------------------
+         */
+        const formattedEdges: Edge[] = uniqueRelationships.flatMap(
+          (relationship) => {
+            const sourceNode = graphNodes.find(
+              (node) =>
+                String(node.id) === String(relationship.source)
             );
 
-            const targetNode = uniqueGraphNodes.find(
-              (node) => String(node.id) === String(relationship.target)
+            const targetNode = graphNodes.find(
+              (node) =>
+                String(node.id) === String(relationship.target)
             );
 
             if (!sourceNode || !targetNode) {
-              return null;
+              return [];
             }
 
-            const sourceType = sourceNode.type.toLowerCase();
-            const targetType = targetNode.type.toLowerCase();
+            const sourceKey =
+              `${sourceNode.type.toLowerCase()}-${sourceNode.id}`;
 
-            return {
-              id: `edge-${sourceType}-${relationship.source}-${targetType}-${relationship.target}-${relationship.type}`,
-              source: `${sourceType}-${relationship.source}`,
-              target: `${targetType}-${relationship.target}`,
-              label: relationship.type
-                ? relationship.type.replace(/_/g, " ")
-                : "",
-              animated: true,
-              style: {
-                stroke: "#1F4D3D",
-                strokeWidth: 2,
-              },
-              labelStyle: {
-                fill: "#14201C",
-                fontWeight: 700,
-                fontSize: 11,
-              },
-              labelBgStyle: {
-                fill: "#F6F4EF",
-                fillOpacity: 0.95,
-                rx: 6,
-                ry: 6,
-              },
-            };
-          })
-          .filter((edge): any => edge !== null);
+            const targetKey =
+              `${targetNode.type.toLowerCase()}-${targetNode.id}`;
 
-        setNodes(formattedNodes);
-        setEdges(formattedEdges);
+            const canonicalSource =
+              nodeIdMap.get(sourceKey);
+
+            const canonicalTarget =
+              nodeIdMap.get(targetKey);
+
+            if (!canonicalSource || !canonicalTarget) {
+              return [];
+            }
+
+            const sourceId =
+              `${canonicalSource.type.toLowerCase()}-${canonicalSource.id}`;
+
+            const targetId =
+              `${canonicalTarget.type.toLowerCase()}-${canonicalTarget.id}`;
+
+            return [
+              {
+                id: `edge-${sourceId}-${targetId}-${relationship.type}`,
+
+                source: sourceId,
+
+                target: targetId,
+
+                label: relationship.type
+                  ? relationship.type.replace(/_/g, " ")
+                  : "",
+
+                animated: true,
+
+                style: {
+                  stroke: "#1F4D3D",
+                  strokeWidth: 2,
+                },
+
+                labelStyle: {
+                  fill: "#14201C",
+                  fontWeight: 700,
+                  fontSize: 11,
+                },
+
+                labelBgStyle: {
+                  fill: "#F6F4EF",
+                  fillOpacity: 0.95,
+                  rx: 6,
+                  ry: 6,
+                },
+              },
+            ];
+          }
+        );
 
         setNodes(formattedNodes);
         setEdges(formattedEdges);

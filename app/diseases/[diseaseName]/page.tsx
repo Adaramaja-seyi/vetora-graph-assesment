@@ -209,7 +209,15 @@ export default function DiseaseDetailsPage() {
             <span>•</span>
             <span>Veterinary Clinical Knowledge Graph</span>
           </div>
-          <p>© 2026 Vetora AI • Powered by CognoDB & React Flow</p>
+          <div className="flex items-center gap-4 text-xs text-[#485852]">
+            <Link href="/" className="hover:text-[#1F4D3D] transition">
+              Diagnosis Assistant
+            </Link>
+            <span>•</span>
+            <Link href="/about" className="hover:text-[#1F4D3D] transition">
+              About Vetora AI
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

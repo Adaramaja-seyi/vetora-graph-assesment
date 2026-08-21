@@ -42,13 +42,12 @@ export default function Header() {
               Diagnosis Assistant
             </Link>
 
-            <button
-              type="button"
-              onClick={() => setAboutOpen(true)}
+            <Link
+              href="/about"
               className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#485852] transition hover:bg-[#EBF2EE] hover:text-[#1F4D3D] sm:text-sm"
             >
-              About System
-            </button>
+              About Vetora AI
+            </Link>
 
             {/* DB Status Badge */}
             <div className="hidden items-center gap-2 rounded-full border border-[#1F4D3D]/30 bg-[#EBF2EE] px-3 py-1 text-xs font-medium text-[#1F4D3D] md:flex">
