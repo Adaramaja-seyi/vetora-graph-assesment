@@ -10,17 +10,23 @@ The application demonstrates how a graph database can model and traverse relatio
 
 ---
 
-## 🚀 Live Demo
+##Screenshot:
+![alt text](image.png)
+![alt text](image-1.png)
+![alt text](image-2.png)
 
-**Live Application:**
-`YOUR_VERCEL_URL`
+##  Live Demo
+
+https://vetora-graph-assesment.vercel.app/
 
 **GitHub Repository:**
-`YOUR_GITHUB_REPOSITORY_URL`
+(https://github.com/Adaramaja-seyi/vetora-graph-assesment)
+
+- **Demo Video:** 
 
 ---
 
-## 📋 Table of Contents
+##  Table of Contents
 
 * [Overview](#-overview)
 * [Why a Graph Database?](#-why-a-graph-database)
@@ -133,7 +139,7 @@ Users can then inspect the connected knowledge graph for a selected disease.
 
 ---
 
-## 📊 Data Model
+## Data Model
 
 Vetora Graph uses a graph model containing veterinary entities and typed relationships.
 
@@ -305,18 +311,18 @@ This represents:
 
 ### User Features
 
-* 🔍 Symptom-based condition matching
-* 🐕 Species selection
-* 📊 Ranked results based on symptom overlap
-* 📈 Symptom match visualization
-* 🔗 Disease similarity analysis
-* 🌐 Interactive knowledge graph visualization
-* 💊 Treatment and medication relationships
-* 📱 Responsive interface
-* ⚠️ Clear veterinary safety disclaimer
-* ⏳ Loading states
-* 🚫 Empty states
-* ❌ Database error handling
+* Symptom-based condition matching
+* Species selection
+* Ranked results based on symptom overlap
+* Symptom match visualization
+* Disease similarity analysis
+* Interactive knowledge graph visualization
+*  Treatment and medication relationships
+* Responsive interface
+* Clear veterinary safety disclaimer
+*  Loading states
+* Empty states
+*  Database error handling
 
 ### Engineering Features
 
@@ -350,7 +356,7 @@ This represents:
 
 ---
 
-# 🚀 Getting Started
+#  Getting Started
 
 ## Prerequisites
 
