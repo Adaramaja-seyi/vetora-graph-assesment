@@ -25,22 +25,20 @@ export default function DiseaseCard({ result, index }: DiseaseCardProps) {
 
   return (
     <article
-      className={`group rounded-3xl border transition-all duration-200 p-6 sm:p-7 shadow-xs hover:shadow-md ${
-        isTopRank
-          ? "border-[#1F4D3D]/50 bg-white ring-1 ring-[#1F4D3D]/20"
-          : "border-[#E3DED3] bg-white hover:border-[#1F4D3D]/40"
-      }`}
+      className={`group rounded-3xl border transition-all duration-200 p-6 sm:p-7 shadow-xs hover:shadow-md ${isTopRank
+        ? "border-[#1F4D3D]/50 bg-white ring-1 ring-[#1F4D3D]/20"
+        : "border-[#E3DED3] bg-white hover:border-[#1F4D3D]/40"
+        }`}
     >
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
         {/* Left info */}
         <div className="flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-3">
             <span
-              className={`flex h-8 w-8 items-center justify-center rounded-xl text-xs font-bold ${
-                isTopRank
-                  ? "bg-[#1F4D3D] text-white shadow-xs"
-                  : "bg-[#F6F4EF] text-[#14201C] border border-[#E3DED3]"
-              }`}
+              className={`flex h-8 w-8 items-center justify-center rounded-xl text-xs font-bold ${isTopRank
+                ? "bg-[#1F4D3D] text-white shadow-xs"
+                : "bg-[#F6F4EF] text-[#14201C] border border-[#E3DED3]"
+                }`}
             >
               #{index + 1}
             </span>
@@ -102,9 +100,9 @@ export default function DiseaseCard({ result, index }: DiseaseCardProps) {
             Matching Symptoms ({matchingSymptoms.length})
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {matchingSymptoms.map((symptom) => (
+            {matchingSymptoms.map((symptom, i) => (
               <span
-                key={symptom}
+                key={i}
                 className="inline-flex items-center gap-1 rounded-lg bg-[#F9F5EE] border border-[#B98B4E]/40 px-2.5 py-1 text-xs font-semibold text-[#B98B4E]"
               >
                 <span>✓</span>
@@ -120,17 +118,16 @@ export default function DiseaseCard({ result, index }: DiseaseCardProps) {
             All Known Symptoms ({symptoms.length})
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {symptoms.map((symptom) => {
+            {symptoms.map((symptom, i) => {
               const isMatched = matchingSymptoms.includes(symptom);
 
               return (
                 <span
-                  key={symptom}
-                  className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium ${
-                    isMatched
-                      ? "bg-[#E3DED3] text-[#14201C] font-semibold"
-                      : "bg-[#F6F4EF] text-[#485852]"
-                  }`}
+                  key={i}
+                  className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium ${isMatched
+                    ? "bg-[#E3DED3] text-[#14201C] font-semibold"
+                    : "bg-[#F6F4EF] text-[#485852]"
+                    }`}
                 >
                   {symptom}
                 </span>

@@ -7,10 +7,33 @@ import {
   MiniMap,
   ReactFlow,
   Handle,
+  useReactFlow,
   Position,
   type Edge,
   type Node,
 } from "@xyflow/react";
+
+function GraphAutoFit({ nodes }: { nodes: Node[] }) {
+  const { fitView } = useReactFlow();
+
+  useEffect(() => {
+    if (nodes.length === 0) return;
+
+    // Wait until React Flow has rendered the nodes
+    const timer = setTimeout(() => {
+      fitView({
+        padding: 0.25,
+        minZoom: 0.1,
+        maxZoom: 2,
+        duration: 300,
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [nodes, fitView]);
+
+  return null;
+}
 
 type KnowledgeGraphProps = {
   diseaseName: string;
@@ -122,55 +145,134 @@ export default function KnowledgeGraph({ diseaseName }: KnowledgeGraphProps) {
         }
 
         const graphNodes: GraphNode[] = data.nodes || [];
-        const graphRelationships: GraphRelationship[] = data.relationships || [];
+        const graphRelationships: GraphRelationship[] =
+          data.relationships || [];
+
+        // Remove duplicate graph nodes
+        const uniqueGraphNodes = Array.from(
+          new Map(
+            graphNodes.map((node) => [
+              `${node.type}-${String(node.id)}`,
+              node,
+            ])
+          ).values()
+        );
 
         // Node positioning logic with type-specific indexing
+        // ---------------------------------------------------------
+        // Format graph nodes
+        // ---------------------------------------------------------
         let symptomIndex = 0;
         let speciesIndex = 0;
-        
-        const formattedNodes: Node[] = graphNodes.map((graphNode) => {
+
+        const formattedNodes: Node[] = [];
+        const nodeIdMap = new Map<string, string>();
+
+        uniqueGraphNodes.forEach((graphNode, index) => {
           let x = 400;
           let y = 250;
 
           if (graphNode.type === "Species") {
             x = 80;
-            y = 150 + (speciesIndex * 120);
+            y = 80 + speciesIndex * 120;
             speciesIndex++;
           }
 
           if (graphNode.type === "Disease") {
-            x = 420;
-            y = 220;
+            x = 450;
+            y = 300;
           }
 
           if (graphNode.type === "Symptom") {
-            x = 760;
-            y = 40 + (symptomIndex * 95);
+            x = 820;
+            y = 60 + symptomIndex * 90;
             symptomIndex++;
           }
 
-          const nodeTypeKey = graphNode.type ? graphNode.type.toLowerCase() : "disease";
+          const nodeTypeKey = graphNode.type
+            ? graphNode.type.toLowerCase()
+            : "disease";
 
-          return {
-            id: graphNode.id,
+          // Original database identity
+          const originalId = String(graphNode.id);
+
+          // Create a unique React Flow ID
+          const baseNodeId = `${nodeTypeKey}-${originalId}`;
+
+          // Guarantee uniqueness even if CognoDB returns duplicate nodes
+          const uniqueNodeId = `${baseNodeId}-${index}`;
+
+          // Store mapping from database node identity to React Flow ID
+          nodeIdMap.set(`${nodeTypeKey}-${originalId}`, uniqueNodeId);
+
+          formattedNodes.push({
+            id: uniqueNodeId,
             type: nodeTypeKey,
             position: { x, y },
-            data: { label: graphNode.label },
-          };
+            data: {
+              label: graphNode.label,
+            },
+          });
         });
 
-        const formattedEdges: Edge[] = graphRelationships.map(
-          (relationship) => ({
-            id: relationship.id,
-            source: relationship.source,
-            target: relationship.target,
-            label: relationship.type ? relationship.type.replace("_", " ") : "",
-            animated: true,
-            style: { stroke: "#1F4D3D", strokeWidth: 2 },
-            labelStyle: { fill: "#14201C", fontWeight: 700, fontSize: 11 },
-            labelBgStyle: { fill: "#F6F4EF", fillOpacity: 0.95, rx: 6, ry: 6 },
-          })
+        // ---------------------------------------------------------
+        // Format graph relationships
+        // ---------------------------------------------------------
+        const uniqueRelationships = Array.from(
+          new Map(
+            graphRelationships.map((relationship) => [
+              `${relationship.source}-${relationship.target}-${relationship.type}`,
+              relationship,
+            ])
+          ).values()
         );
+
+        const formattedEdges: any = uniqueRelationships
+          .map((relationship) => {
+            const sourceNode = uniqueGraphNodes.find(
+              (node) => String(node.id) === String(relationship.source)
+            );
+
+            const targetNode = uniqueGraphNodes.find(
+              (node) => String(node.id) === String(relationship.target)
+            );
+
+            if (!sourceNode || !targetNode) {
+              return null;
+            }
+
+            const sourceType = sourceNode.type.toLowerCase();
+            const targetType = targetNode.type.toLowerCase();
+
+            return {
+              id: `edge-${sourceType}-${relationship.source}-${targetType}-${relationship.target}-${relationship.type}`,
+              source: `${sourceType}-${relationship.source}`,
+              target: `${targetType}-${relationship.target}`,
+              label: relationship.type
+                ? relationship.type.replace(/_/g, " ")
+                : "",
+              animated: true,
+              style: {
+                stroke: "#1F4D3D",
+                strokeWidth: 2,
+              },
+              labelStyle: {
+                fill: "#14201C",
+                fontWeight: 700,
+                fontSize: 11,
+              },
+              labelBgStyle: {
+                fill: "#F6F4EF",
+                fillOpacity: 0.95,
+                rx: 6,
+                ry: 6,
+              },
+            };
+          })
+          .filter((edge): any => edge !== null);
+
+        setNodes(formattedNodes);
+        setEdges(formattedEdges);
 
         setNodes(formattedNodes);
         setEdges(formattedEdges);
@@ -265,20 +367,31 @@ export default function KnowledgeGraph({ diseaseName }: KnowledgeGraphProps) {
       </div>
 
       {/* React Flow Container */}
-      <div className="h-[560px] w-full bg-[#F6F4EF]/40">
+      <div className="relative h-[560px] w-full overflow-hidden bg-[#F6F4EF]/40">
         <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.35 }}
           nodesDraggable
           nodesConnectable={false}
           elementsSelectable
+          minZoom={0.1}
+          maxZoom={2}
         >
-          <Background color="#E3DED3" gap={20} size={1} />
+          <GraphAutoFit nodes={nodes} />
+
+          <Background
+            color="#E3DED3"
+            gap={20}
+            size={1}
+          />
+
           <Controls />
-          <MiniMap pannable zoomable />
+
+          <MiniMap
+            pannable
+            zoomable
+          />
         </ReactFlow>
       </div>
     </div>

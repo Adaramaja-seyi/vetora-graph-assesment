@@ -139,9 +139,9 @@ export default function DiseaseDetailsPage() {
               </h3>
 
               <div className="flex flex-wrap gap-2">
-                {disease.species.map((animal) => (
+                {disease.species.map((animal, i) => (
                   <span
-                    key={animal}
+                    key={i}
                     className="inline-flex items-center gap-1.5 rounded-xl border border-[#B98B4E]/40 bg-[#F9F5EE] px-3.5 py-2 text-xs font-bold text-[#B98B4E] shadow-xs"
                   >
                     <svg className="h-4 w-4 text-[#B98B4E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -160,9 +160,9 @@ export default function DiseaseDetailsPage() {
               </h3>
 
               <div className="flex flex-wrap gap-2">
-                {disease.symptoms.map((symptom) => (
+                {disease.symptoms.map((symptom, i) => (
                   <span
-                    key={symptom}
+                    key={i}
                     className="inline-flex items-center gap-1.5 rounded-xl border border-[#E3DED3] bg-[#F6F4EF] px-3.5 py-2 text-xs font-bold text-[#14201C] shadow-xs"
                   >
                     <span className="text-[#1F4D3D] font-extrabold">✓</span>

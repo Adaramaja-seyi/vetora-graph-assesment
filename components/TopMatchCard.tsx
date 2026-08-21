@@ -81,9 +81,9 @@ export default function TopMatchCard({ topMatch, selectedSpecies }: TopMatchCard
         </p>
 
         <div className="flex flex-wrap gap-2">
-          {matchingSymptoms.map((symptom) => (
+          {matchingSymptoms.map((symptom, i) => (
             <span
-              key={symptom}
+              key={i}
               className="inline-flex items-center gap-1.5 rounded-xl bg-[#B98B4E] text-white px-3 py-1.5 text-xs font-semibold shadow-xs"
             >
               <span>✓</span>
